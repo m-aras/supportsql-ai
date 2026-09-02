@@ -1,0 +1,25 @@
+# Ortam / secrets
+.env
+
+# Python sanal ortam
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+
+# DB dump/backup dosyaları
+*.dump
+*.tar
+*.sql
+
+# İşletim sistemi
+.DS_Store
+Thumbs.db
