@@ -1,11 +1,14 @@
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
-from ollama import chat
+from huggingface_hub import InferenceClient
 from sqlalchemy import text
 from db import engine
 from sql_guard import validate_sql
 
 app = FastAPI()
+
+hf_client = InferenceClient(token=os.environ["HF_TOKEN"])
 
 
 class ChatRequest(BaseModel):
@@ -95,28 +98,22 @@ Question:
 {request.message}
 """
 
-    response = chat(
-        model="qwen3:4b",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-        think=False
+    response = hf_client.chat.completions.create(
+        model="Qwen/Qwen2.5-7B-Instruct",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=300,
     )
-
-    sql_query = (response.message.content or "").strip()
+    sql_query = (response.choices[0].message.content or "").strip()
 
     # Qwen düşünme çıktısı verdiyse sadece sonrasını al
     if "</think>" in sql_query:
         sql_query = sql_query.split("</think>")[-1]
-    # Markdown SQL bloklarını temizl
+    # Markdown SQL bloklarını temizle
     sql_query = sql_query.replace("```sql", "")
     sql_query = sql_query.replace("```", "")
     sql_query = sql_query.strip()
 
-    # sqlglot ile AST tabanlı doğrulama 
+    # sqlglot ile AST tabanlı doğrulama
     is_safe, error_message = validate_sql(sql_query)
     if not is_safe:
         return {
@@ -140,6 +137,6 @@ Question:
         }
     except Exception as e:
         return {
-            "error": "Sorgu çalıştırılamadı.",
+            "error": str(e),
             "generated_sql": sql_query
         }
