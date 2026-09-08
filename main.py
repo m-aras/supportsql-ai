@@ -8,7 +8,7 @@ from sql_guard import validate_sql
 
 app = FastAPI()
 
-hf_client = InferenceClient(token=os.environ["HF_TOKEN"], provider="auto")
+hf_client = InferenceClient(token=os.environ["HF_TOKEN"], provider="hf-inference")
 
 
 class ChatRequest(BaseModel):
@@ -100,7 +100,7 @@ Question:
 
     try:
         response = hf_client.chat.completions.create(
-            model="Qwen/Qwen2.5-7B-Instruct",
+            model="meta-llama/Llama-3.1-8B-Instruct",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=300,
         )
