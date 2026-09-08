@@ -8,7 +8,7 @@ from sql_guard import validate_sql
 
 app = FastAPI()
 
-hf_client = InferenceClient(token=os.environ["HF_TOKEN"])
+hf_client = InferenceClient(token=os.environ["HF_TOKEN"], provider="auto")
 
 
 class ChatRequest(BaseModel):
@@ -98,12 +98,15 @@ Question:
 {request.message}
 """
 
-    response = hf_client.chat.completions.create(
-        model="Qwen/Qwen2.5-7B-Instruct",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=300,
-    )
-    sql_query = (response.choices[0].message.content or "").strip()
+    try:
+        response = hf_client.chat.completions.create(
+            model="Qwen/Qwen2.5-7B-Instruct",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=300,
+        )
+        sql_query = (response.choices[0].message.content or "").strip()
+    except Exception as e:
+        return {"error": f"LLM çağrısı başarısız: {str(e)}"}
 
     # Qwen düşünme çıktısı verdiyse sadece sonrasını al
     if "</think>" in sql_query:
