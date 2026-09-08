@@ -8,7 +8,7 @@ from sql_guard import validate_sql
 
 app = FastAPI()
 
-hf_client = InferenceClient(token=os.environ["HF_TOKEN")
+hf_client = InferenceClient(token=os.environ["HF_TOKEN"])
 
 
 class ChatRequest(BaseModel):
